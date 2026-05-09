@@ -532,11 +532,9 @@ with tabs[1]:
         prev += cnt
  
     fig2.update_layout(**PLOTLY_LAYOUT, height=580,
-                       title="DTW Distance Matrix — dikelompokkan per Cluster",
-                       xaxis=dict(tickangle=-45, tickfont=dict(size=9),
-                                  gridcolor="transparent"),
-                       yaxis=dict(tickfont=dict(size=9), autorange="reversed",
-                                  gridcolor="transparent"))
+                       title="DTW Distance Matrix — dikelompokkan per Cluster")
+    fig2.update_xaxes(tickangle=-45, tickfont=dict(size=9), gridcolor="transparent")
+    fig2.update_yaxes(tickfont=dict(size=9), autorange="reversed", gridcolor="transparent")
     st.plotly_chart(fig2, use_container_width=True)
  
     # Top-N similar pairs table
@@ -647,9 +645,8 @@ with tabs[3]:
     fig4.update_layout(**PLOTLY_LAYOUT, height=620,
                        title="Leader Score — Semakin Tinggi = Semakin Representatif (Leader)",
                        xaxis_title="Leader Score (1 / rata-rata jarak DTW)",
-                       yaxis=dict(autorange="reversed", tickfont=dict(size=11),
-                                  gridcolor="transparent"),
                        bargap=0.25)
+    fig4.update_yaxes(autorange="reversed", tickfont=dict(size=11), gridcolor="transparent")
  
     # Annotations for top & bottom
     fig4.add_annotation(
