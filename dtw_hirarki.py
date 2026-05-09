@@ -538,20 +538,22 @@ with tabs[1]:
  
     fig2.update_layout(**PLOTLY_LAYOUT, height=580,
                        title="DTW Distance Matrix — dikelompokkan per Cluster")
+    
+    # PERBAIKAN: "transparent" diubah menjadi "rgba(0,0,0,0)"
     fig2.update_layout(
-    xaxis=dict(
-        tickangle=-45, 
-        tickfont=dict(size=9),
-        gridcolor="transparent",
-        zerolinecolor="transparent"
-    ),
-    yaxis=dict(
-        tickfont=dict(size=9), 
-        autorange="reversed",
-        gridcolor="transparent",
-        zerolinecolor="transparent"
-    ),
-)
+        xaxis=dict(
+            tickangle=-45, 
+            tickfont=dict(size=9),
+            gridcolor="rgba(0,0,0,0)",
+            zerolinecolor="rgba(0,0,0,0)"
+        ),
+        yaxis=dict(
+            tickfont=dict(size=9), 
+            autorange="reversed",
+            gridcolor="rgba(0,0,0,0)",
+            zerolinecolor="rgba(0,0,0,0)"
+        ),
+    )
     st.plotly_chart(fig2, use_container_width=True)
  
     # Top-N similar pairs table
@@ -659,24 +661,27 @@ with tabs[3]:
     ))
     fig4.add_vline(x=leader_df["Skor"].mean(), line_dash="dash", line_color=ACCENT_GOLD,
                    annotation_text="Rata-rata", annotation_font=dict(color=ACCENT_GOLD))
+    
     fig4.update_layout(**PLOTLY_LAYOUT, height=620,
                        title="Leader Score — Semakin Tinggi = Semakin Representatif (Leader)",
                        xaxis_title="Leader Score (1 / rata-rata jarak DTW)",
                        bargap=0.25)
-    fig4b.update_layout(
-    xaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-    yaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-)
+    
+    # PERBAIKAN: fig4b diubah menjadi fig4 karena fig4b belum didefinisikan di sini
+    fig4.update_layout(
+        xaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+        yaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+    )
  
     # Annotations for top & bottom
     fig4.add_annotation(
@@ -767,19 +772,19 @@ with tabs[4]:
                        xaxis_title="Tanggal", yaxis_title="Z-Score",
                        hovermode="x unified")
     fig5.update_layout(
-    xaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-    yaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-)
+        xaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+        yaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+    )
     st.plotly_chart(fig5, use_container_width=True)
  
     # Individual cluster deep-dive
@@ -803,19 +808,19 @@ with tabs[4]:
                         xaxis_title="Tanggal", yaxis_title="Z-Score",
                         hovermode="x unified")
     fig5b.update_layout(
-    xaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-    yaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-)
+        xaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+        yaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+    )
     st.plotly_chart(fig5b, use_container_width=True)
  
  
