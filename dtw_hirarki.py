@@ -20,7 +20,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  PAGE CONFIG
 # ─────────────────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  GLOBAL THEME
 # ─────────────────────────────────────────────────────────────────────────────
@@ -45,10 +45,10 @@ ACCENT_PURPLE = "#BC8CFF"
 ACCENT_CYAN   = "#39D0D8"
 TEXT_MAIN     = "#E6EDF3"
 TEXT_MUTE     = "#8B949E"
-
+ 
 CLUSTER_COLORS = [ACCENT_BLUE, ACCENT_RED, ACCENT_GREEN, ACCENT_GOLD,
                   ACCENT_PURPLE, ACCENT_CYAN]
-
+ 
 PLOTLY_LAYOUT = dict(
     paper_bgcolor=CARD_BG,
     plot_bgcolor=CARD_BG,
@@ -58,28 +58,28 @@ PLOTLY_LAYOUT = dict(
     legend=dict(bgcolor=CARD_BG, bordercolor=BORDER_CLR, borderwidth=1),
     margin=dict(l=40, r=20, t=50, b=40),
 )
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  CUSTOM CSS
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
+ 
   html, body, [class*="css"] {{
       font-family: 'Inter', sans-serif;
       background-color: {DARK_BG};
       color: {TEXT_MAIN};
   }}
   .stApp {{ background-color: {DARK_BG}; }}
-
+ 
   /* Sidebar */
   [data-testid="stSidebar"] {{
       background-color: {CARD_BG};
       border-right: 1px solid {BORDER_CLR};
   }}
   [data-testid="stSidebar"] * {{ color: {TEXT_MAIN} !important; }}
-
+ 
   /* Cards */
   .metric-card {{
       background: {CARD_BG};
@@ -106,7 +106,7 @@ st.markdown(f"""
       color: {TEXT_MUTE};
       margin-top: 4px;
   }}
-
+ 
   /* Section headers */
   .section-header {{
       font-size: 13px;
@@ -118,7 +118,7 @@ st.markdown(f"""
       border-bottom: 1px solid {BORDER_CLR};
       margin-bottom: 16px;
   }}
-
+ 
   /* Page title */
   .hero {{
       background: linear-gradient(135deg, {CARD_BG} 0%, #1C2333 100%);
@@ -138,7 +138,7 @@ st.markdown(f"""
   }}
   .hero h1 {{ font-size: 28px; font-weight: 700; margin: 0; color: {TEXT_MAIN}; }}
   .hero p  {{ font-size: 14px; color: {TEXT_MUTE}; margin: 6px 0 0 0; }}
-
+ 
   /* Cluster badges */
   .badge {{
       display: inline-block;
@@ -148,19 +148,19 @@ st.markdown(f"""
       font-weight: 600;
       margin: 2px;
   }}
-
+ 
   /* Step progress */
   .step-done {{
       color: {ACCENT_GREEN};
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
   }}
-
+ 
   /* Table */
   .stDataFrame {{ border-radius: 8px; overflow: hidden; }}
   thead tr th {{ background: {CARD_BG} !important; color: {TEXT_MUTE} !important; font-size: 11px !important; }}
   tbody tr:hover td {{ background: #21262D !important; }}
-
+ 
   /* Buttons & sliders */
   .stButton > button {{
       background: {ACCENT_BLUE};
@@ -171,19 +171,19 @@ st.markdown(f"""
       padding: 8px 20px;
   }}
   .stButton > button:hover {{ background: #79BAFF; }}
-
+ 
   div[data-testid="stSelectbox"] > div,
   div[data-testid="stMultiSelect"] > div {{
       background: {CARD_BG};
       border-color: {BORDER_CLR};
       border-radius: 8px;
   }}
-
+ 
   /* Plotly charts full-width */
   .js-plotly-plot {{ border-radius: 10px; }}
 </style>
 """, unsafe_allow_html=True)
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  CORE FUNCTIONS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -198,14 +198,14 @@ def load_data(file_content: bytes) -> pd.DataFrame:
     valid_cols = df.columns[df.isnull().mean() < 0.30]
     df = df[valid_cols].ffill().bfill()
     return df
-
-
+ 
+ 
 @st.cache_data(show_spinner=False)
 def normalize(df: pd.DataFrame) -> pd.DataFrame:
     df_norm = (df - df.mean()) / df.std()
     return df_norm.dropna(axis=1)
-
-
+ 
+ 
 def dtw_distance(s1: np.ndarray, s2: np.ndarray, window: int = 30) -> float:
     n1, n2 = len(s1), len(s2)
     w = max(window, abs(n1 - n2))
@@ -216,8 +216,8 @@ def dtw_distance(s1: np.ndarray, s2: np.ndarray, window: int = 30) -> float:
             cost = abs(s1[i - 1] - s2[j - 1])
             dtw_mat[i, j] = cost + min(dtw_mat[i-1, j], dtw_mat[i, j-1], dtw_mat[i-1, j-1])
     return dtw_mat[n1, n2]
-
-
+ 
+ 
 def dtw_path(s1: np.ndarray, s2: np.ndarray):
     n1, n2 = len(s1), len(s2)
     dtw_mat = np.full((n1 + 1, n2 + 1), np.inf)
@@ -234,8 +234,8 @@ def dtw_path(s1: np.ndarray, s2: np.ndarray):
         elif best == 1: j -= 1
         else: i -= 1; j -= 1
     return dtw_mat[1:, 1:], list(reversed(path))
-
-
+ 
+ 
 @st.cache_data(show_spinner=False)
 def compute_dtw_matrix(_df_norm: pd.DataFrame, window: int = 30) -> np.ndarray:
     tickers = _df_norm.columns.tolist()
@@ -247,44 +247,45 @@ def compute_dtw_matrix(_df_norm: pd.DataFrame, window: int = 30) -> np.ndarray:
             d = dtw_distance(data[i], data[j], window)
             dist_mat[i, j] = dist_mat[j, i] = d
     return dist_mat
-
-
+ 
+ 
 @st.cache_data(show_spinner=False)
 def run_clustering(_dist_mat: np.ndarray, k: int):
     condensed = squareform(_dist_mat)
     Z = linkage(condensed, method="ward")
     labels = fcluster(Z, k, criterion="maxclust")
     return Z, labels.tolist()
-
-
+ 
+ 
 def leader_scores(dist_mat: np.ndarray) -> np.ndarray:
     scores = []
     for i in range(len(dist_mat)):
         row = dist_mat[i].copy(); row[i] = np.nan
         scores.append(1.0 / (np.nanmean(row) + 1e-9))
     return np.array(scores)
-
+ 
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  SIDEBAR
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Konfigurasi Analisis")
     st.markdown("---")
-
+ 
     uploaded = st.file_uploader(
         "📂 Upload CSV Harga Saham",
         type=["csv"],
         help="Format: baris = saham, kolom = tanggal, separator ';'"
     )
-
+ 
     st.markdown("**Parameter DTW**")
     dtw_window = st.slider("Window Sakoe-Chiba (hari)", 10, 60, 30,
                            help="Lebar band warping. Lebih besar = lebih fleksibel.")
     n_clusters  = st.slider("Jumlah Cluster (K)", 2, 8, 4)
-
+ 
     st.markdown("**Filter Tanggal**")
     use_date_filter = st.checkbox("Aktifkan filter tanggal", value=False)
-
+ 
     st.markdown("---")
     st.markdown(f"""
     <div style='font-size:11px; color:{TEXT_MUTE}; line-height:1.7'>
@@ -296,7 +297,7 @@ with st.sidebar:
     Makin tinggi → makin representatif.
     </div>
     """, unsafe_allow_html=True)
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  HERO HEADER
 # ─────────────────────────────────────────────────────────────────────────────
@@ -306,7 +307,7 @@ st.markdown("""
   <p>Dynamic Time Warping · Leader-Lagger Detection · Time Series Clustering · 2023–2026</p>
 </div>
 """, unsafe_allow_html=True)
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  GUARD: file belum diupload
 # ─────────────────────────────────────────────────────────────────────────────
@@ -325,14 +326,14 @@ if uploaded is None:
     </div>
     """, unsafe_allow_html=True)
     st.stop()
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  LOAD DATA
 # ─────────────────────────────────────────────────────────────────────────────
 with st.spinner("⏳ Memuat & membersihkan data…"):
     df_raw   = load_data(uploaded.read())
     df_norm0 = normalize(df_raw)
-
+ 
 # Date filter
 if use_date_filter:
     col_a, col_b = st.columns(2)
@@ -344,26 +345,26 @@ if use_date_filter:
     df_norm = normalize(df_raw)
 else:
     df_norm = df_norm0
-
+ 
 tickers = df_norm.columns.tolist()
 n       = len(tickers)
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  COMPUTE (with progress)
 # ─────────────────────────────────────────────────────────────────────────────
 prog_bar = st.progress(0, text="🔄 Menghitung matriks DTW…")
-
+ 
 @st.cache_data(show_spinner=False)
 def full_compute(_df_norm, window, k):
     dist_mat        = compute_dtw_matrix(_df_norm, window)
     Z_link, labels  = run_clustering(dist_mat, k)
     scores          = leader_scores(dist_mat)
     return dist_mat, Z_link, labels, scores
-
+ 
 dist_mat, Z_link, cluster_labels, scores = full_compute(df_norm, dtw_window, n_clusters)
 prog_bar.progress(100, text="✅ Kalkulasi selesai!")
 prog_bar.empty()
-
+ 
 # Build lookup structures
 cluster_map = {t: cluster_labels[i] for i, t in enumerate(tickers)}
 leader_df   = pd.DataFrame({
@@ -371,21 +372,21 @@ leader_df   = pd.DataFrame({
     "Cluster": [cluster_map[t] for t in tickers],
     "Skor"   : scores,
 }).sort_values("Skor", ascending=False).reset_index(drop=True)
-
+ 
 top_leader = leader_df.iloc[0]["Saham"]
 top_lagger = leader_df.iloc[-1]["Saham"]
-
+ 
 pairs_sorted = sorted(
     [(tickers[i], tickers[j], dist_mat[i, j])
      for i in range(n) for j in range(i+1, n)],
     key=lambda x: x[2]
 )
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  KPI CARDS
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown('<div class="section-header">📊 Ringkasan Analisis</div>', unsafe_allow_html=True)
-
+ 
 c1, c2, c3, c4, c5, c6 = st.columns(6)
 def kpi(col, label, value, sub="", color=ACCENT_BLUE):
     col.markdown(f"""
@@ -394,7 +395,7 @@ def kpi(col, label, value, sub="", color=ACCENT_BLUE):
       <div class="value" style="color:{color}">{value}</div>
       <div class="sub">{sub}</div>
     </div>""", unsafe_allow_html=True)
-
+ 
 kpi(c1, "Total Saham",    n,               f"{df_norm.shape[0]} hari bursa", ACCENT_BLUE)
 kpi(c2, "Cluster",        n_clusters,      f"Ward Linkage",                   ACCENT_PURPLE)
 kpi(c3, "Leader Utama",   top_leader.replace(".JK",""), f"Skor {leader_df['Skor'].iloc[0]:.4f}", ACCENT_GREEN)
@@ -402,9 +403,9 @@ kpi(c4, "Lagger Utama",   top_lagger.replace(".JK",""), f"Skor {leader_df['Skor'
 kpi(c5, "Pasangan Mirip", pairs_sorted[0][0].replace(".JK","")+"↔"+pairs_sorted[0][1].replace(".JK",""),
     f"DTW = {pairs_sorted[0][2]:.1f}", ACCENT_GOLD)
 kpi(c6, "Window DTW",     f"{dtw_window}h", "Sakoe-Chiba band",               ACCENT_CYAN)
-
+ 
 st.markdown("<br>", unsafe_allow_html=True)
-
+ 
 # ─────────────────────────────────────────────────────────────────────────────
 #  TAB LAYOUT
 # ─────────────────────────────────────────────────────────────────────────────
@@ -417,14 +418,14 @@ tabs = st.tabs([
     "⑥ DTW Pair Viewer",
     "⑦ Data & Export",
 ])
-
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAB 1 — HARGA SAHAM NORMALIZED
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[0]:
     st.markdown('<div class="section-header">① Harga Penutupan Ternormalisasi (Z-Score)</div>',
                 unsafe_allow_html=True)
-
+ 
     col_ctrl1, col_ctrl2 = st.columns([3, 1])
     selected_tickers = col_ctrl1.multiselect(
         "Pilih saham (kosong = semua)",
@@ -436,12 +437,12 @@ with tabs[0]:
         "Filter cluster",
         ["Semua"] + [f"Cluster {k}" for k in range(1, n_clusters + 1)],
     )
-
+ 
     display_tickers = selected_tickers if selected_tickers else tickers
     if show_cluster_only != "Semua":
         ck = int(show_cluster_only.split()[-1])
         display_tickers = [t for t in display_tickers if cluster_map[t] == ck]
-
+ 
     fig1 = go.Figure()
     for t in display_tickers:
         c_idx = (cluster_map[t] - 1) % len(CLUSTER_COLORS)
@@ -458,7 +459,7 @@ with tabs[0]:
                        xaxis_title="Tanggal", yaxis_title="Z-Score",
                        hovermode="x unified")
     st.plotly_chart(fig1, use_container_width=True)
-
+ 
     # Mini table: first/last price & change
     st.markdown('<div class="section-header">Ringkasan Harga Per Saham</div>',
                 unsafe_allow_html=True)
@@ -481,14 +482,15 @@ with tabs[0]:
                      "Perubahan": st.column_config.TextColumn("Perubahan (%)", help="Dari awal hingga akhir periode"),
                      "Cluster": st.column_config.NumberColumn("Cluster", format="%d"),
                  })
-
+ 
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAB 2 — DTW HEATMAP
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[1]:
     st.markdown('<div class="section-header">② Matriks Jarak DTW Antar Saham</div>',
                 unsafe_allow_html=True)
-
+ 
     sort_by = st.radio("Urut berdasarkan", ["Cluster", "Leader Score", "Abjad"],
                        horizontal=True)
     if sort_by == "Cluster":
@@ -497,19 +499,21 @@ with tabs[1]:
         order = leader_df["Saham"].tolist()
     else:
         order = sorted(tickers)
-
+ 
     idx_o   = [tickers.index(t) for t in order]
     dm_ord  = dist_mat[np.ix_(idx_o, idx_o)]
     labels_o = [t.replace(".JK","") for t in order]
-
+ 
     fig2 = go.Figure(go.Heatmap(
         z=dm_ord, x=labels_o, y=labels_o,
         colorscale=[[0, ACCENT_GREEN], [0.5, CARD_BG], [1, ACCENT_RED]],
         hovertemplate="<b>%{y}</b> ↔ <b>%{x}</b><br>DTW Distance: %{z:.1f}<extra></extra>",
-        colorbar=dict(title="Jarak DTW", tickfont=dict(color=TEXT_MAIN),
-                      titlefont=dict(color=TEXT_MAIN)),
+        colorbar=dict(
+            title=dict(text="Jarak DTW", font=dict(color=TEXT_MAIN)),
+            tickfont=dict(color=TEXT_MAIN),
+        ),
     ))
-
+ 
     # Cluster separator lines
     prev = 0
     for k in range(1, n_clusters + 1):
@@ -526,7 +530,7 @@ with tabs[1]:
             font=dict(color=CLUSTER_COLORS[k-1], size=10),
         )
         prev += cnt
-
+ 
     fig2.update_layout(**PLOTLY_LAYOUT, height=580,
                        title="DTW Distance Matrix — dikelompokkan per Cluster",
                        xaxis=dict(tickangle=-45, tickfont=dict(size=9),
@@ -534,42 +538,43 @@ with tabs[1]:
                        yaxis=dict(tickfont=dict(size=9), autorange="reversed",
                                   gridcolor="transparent"))
     st.plotly_chart(fig2, use_container_width=True)
-
+ 
     # Top-N similar pairs table
     st.markdown('<div class="section-header">Top Pasangan Saham Paling Mirip & Paling Berbeda</div>',
                 unsafe_allow_html=True)
     n_top = st.slider("Tampilkan N pasangan", 5, 20, 10)
     col_sim, col_dif = st.columns(2)
-
+ 
     with col_sim:
         st.markdown(f"<div style='color:{ACCENT_GREEN}; font-weight:600; font-size:13px;'>🟢 Paling Mirip (DTW terkecil)</div>", unsafe_allow_html=True)
         df_sim = pd.DataFrame(pairs_sorted[:n_top], columns=["Saham A","Saham B","DTW Distance"])
         df_sim["DTW Distance"] = df_sim["DTW Distance"].round(2)
         st.dataframe(df_sim, use_container_width=True, hide_index=True)
-
+ 
     with col_dif:
         st.markdown(f"<div style='color:{ACCENT_RED}; font-weight:600; font-size:13px;'>🔴 Paling Berbeda (DTW terbesar)</div>", unsafe_allow_html=True)
         df_dif = pd.DataFrame(pairs_sorted[-n_top:][::-1], columns=["Saham A","Saham B","DTW Distance"])
         df_dif["DTW Distance"] = df_dif["DTW Distance"].round(2)
         st.dataframe(df_dif, use_container_width=True, hide_index=True)
-
+ 
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAB 3 — DENDROGRAM
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[2]:
     st.markdown('<div class="section-header">③ Dendrogram Hierarchical Clustering (Ward Linkage)</div>',
                 unsafe_allow_html=True)
-
+ 
     # Render dendrogram via matplotlib (plotly dendrogram not as pretty)
     fig_dend, ax = plt.subplots(figsize=(14, 6), facecolor=CARD_BG)
     ax.set_facecolor(CARD_BG)
-
+ 
     color_list = [CLUSTER_COLORS[(k-1) % len(CLUSTER_COLORS)] for k in range(1, n_clusters+1)]
     threshold_val = Z_link[-(n_clusters - 1), 2] if n_clusters > 1 else Z_link[-1, 2]
-
+ 
     from scipy.cluster.hierarchy import set_link_color_palette
     set_link_color_palette(CLUSTER_COLORS[:n_clusters])
-
+ 
     dend = dendrogram(
         Z_link,
         labels=[t.replace(".JK","") for t in tickers],
@@ -590,7 +595,7 @@ with tabs[2]:
     plt.tight_layout()
     st.pyplot(fig_dend, use_container_width=True)
     plt.close()
-
+ 
     # Cluster membership cards
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-header">Komposisi Cluster</div>', unsafe_allow_html=True)
@@ -617,13 +622,14 @@ with tabs[2]:
           </div>
           {badge_html}
         </div>""", unsafe_allow_html=True)
-
+ 
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAB 4 — LEADER / LAGGER
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[3]:
     st.markdown('<div class="section-header">④ Leader–Lagger Score</div>', unsafe_allow_html=True)
-
+ 
     # Bar chart
     colors_bar = [CLUSTER_COLORS[(cluster_map[t]-1) % len(CLUSTER_COLORS)] for t in leader_df["Saham"]]
     fig4 = go.Figure(go.Bar(
@@ -637,14 +643,14 @@ with tabs[3]:
         hovertemplate="<b>%{y}</b><br>Leader Score: %{x:.5f}<extra></extra>",
     ))
     fig4.add_vline(x=leader_df["Skor"].mean(), line_dash="dash", line_color=ACCENT_GOLD,
-                   annotation_text=f"Rata-rata", annotation_font_color=ACCENT_GOLD)
+                   annotation_text="Rata-rata", annotation_font=dict(color=ACCENT_GOLD))
     fig4.update_layout(**PLOTLY_LAYOUT, height=620,
                        title="Leader Score — Semakin Tinggi = Semakin Representatif (Leader)",
                        xaxis_title="Leader Score (1 / rata-rata jarak DTW)",
                        yaxis=dict(autorange="reversed", tickfont=dict(size=11),
                                   gridcolor="transparent"),
                        bargap=0.25)
-
+ 
     # Annotations for top & bottom
     fig4.add_annotation(
         x=leader_df["Skor"].iloc[0],
@@ -661,7 +667,7 @@ with tabs[3]:
         arrowcolor=ACCENT_RED,
     )
     st.plotly_chart(fig4, use_container_width=True)
-
+ 
     # Scatter: leader score vs return
     st.markdown('<div class="section-header">Leader Score vs. Return Periode</div>',
                 unsafe_allow_html=True)
@@ -679,7 +685,7 @@ with tabs[3]:
             "Cluster": cluster_map[t],
         })
     df_sc = pd.DataFrame(scatter_data)
-
+ 
     fig4b = px.scatter(
         df_sc, x="Skor", y="Return",
         text="Saham", color="Cluster",
@@ -693,14 +699,15 @@ with tabs[3]:
     fig4b.add_hline(y=0, line_dash="dash", line_color=TEXT_MUTE, opacity=0.4)
     fig4b.update_layout(**PLOTLY_LAYOUT, height=400)
     st.plotly_chart(fig4b, use_container_width=True)
-
+ 
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAB 5 — CLUSTER TREND
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[4]:
     st.markdown('<div class="section-header">⑤ Tren Rata-rata Per Cluster</div>',
                 unsafe_allow_html=True)
-
+ 
     # Mean + std band per cluster
     fig5 = go.Figure()
     for k in range(1, n_clusters + 1):
@@ -729,14 +736,14 @@ with tabs[4]:
                        xaxis_title="Tanggal", yaxis_title="Z-Score",
                        hovermode="x unified")
     st.plotly_chart(fig5, use_container_width=True)
-
+ 
     # Individual cluster deep-dive
     st.markdown('<div class="section-header">Deep-Dive: Saham dalam Satu Cluster</div>',
                 unsafe_allow_html=True)
     sel_cluster = st.selectbox("Pilih Cluster", range(1, n_clusters + 1),
                                format_func=lambda k: f"Cluster {k}")
     cluster_members = [t for t, c in cluster_map.items() if c == sel_cluster]
-
+ 
     fig5b = go.Figure()
     for t in cluster_members:
         fig5b.add_trace(go.Scatter(
@@ -751,14 +758,15 @@ with tabs[4]:
                         xaxis_title="Tanggal", yaxis_title="Z-Score",
                         hovermode="x unified")
     st.plotly_chart(fig5b, use_container_width=True)
-
+ 
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAB 6 — DTW PAIR VIEWER (INTERACTIVE)
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[5]:
     st.markdown('<div class="section-header">⑥ DTW Pair Comparison — Warping Path Visualizer</div>',
                 unsafe_allow_html=True)
-
+ 
     col_p1, col_p2, col_p3 = st.columns([2, 2, 1])
     t1_sel = col_p1.selectbox("Saham 1", tickers, index=0,
                                format_func=lambda x: x.replace(".JK",""))
@@ -767,7 +775,7 @@ with tabs[5]:
                                format_func=lambda x: x.replace(".JK",""))
     subsample = col_p3.slider("Subsample", 50, 200, 100, step=10,
                                help="Titik data untuk visualisasi warping path")
-
+ 
     d_val = dist_mat[tickers.index(t1_sel), tickers.index(t2_sel)]
     st.markdown(
         f"<div style='margin-bottom:12px; font-size:13px;'>"
@@ -777,7 +785,7 @@ with tabs[5]:
         f" dari {len(pairs_sorted)} pasangan</div>",
         unsafe_allow_html=True
     )
-
+ 
     s1_raw = df_norm[t1_sel].values
     s2_raw = df_norm[t2_sel].values
     step   = max(1, len(s1_raw) // subsample)
@@ -785,13 +793,13 @@ with tabs[5]:
     s2s    = s2_raw[::step]
     dates_s = df_norm.index[::step]
     ns     = min(len(dates_s), len(s1s), len(s2s))
-
+ 
     with st.spinner("Menghitung warping path…"):
         _, path = dtw_path(s1s[:ns], s2s[:ns])
-
+ 
     fig6 = make_subplots(rows=2, cols=1, row_heights=[0.7, 0.3],
                          shared_xaxes=False, vertical_spacing=0.06)
-
+ 
     # Top: dual-axis line chart
     fig6.add_trace(go.Scatter(
         x=dates_s[:ns], y=s1s[:ns], name=t1_sel.replace(".JK",""),
@@ -803,7 +811,7 @@ with tabs[5]:
         line=dict(color=ACCENT_RED, width=2),
         hovertemplate=f"<b>{t2_sel}</b><br>%{{x|%d %b %Y}}<br>%{{y:.2f}}<extra></extra>",
     ), row=1, col=1)
-
+ 
     # Warping path lines (sampled)
     for pi, pj in path[::max(1, len(path)//60)]:
         if pi < ns and pj < ns:
@@ -816,7 +824,7 @@ with tabs[5]:
                 showlegend=False,
                 hoverinfo="skip",
             ), row=1, col=1)
-
+ 
     # Bottom: warping path heatmap (cost difference)
     diff = np.abs(s1s[:ns] - s2s[:ns])
     fig6.add_trace(go.Scatter(
@@ -827,7 +835,7 @@ with tabs[5]:
         fillcolor=f"{ACCENT_GOLD}25",
         hovertemplate="%{x|%d %b %Y}<br>Selisih: %{y:.3f}<extra></extra>",
     ), row=2, col=1)
-
+ 
     fig6.update_layout(
         paper_bgcolor=CARD_BG, plot_bgcolor=CARD_BG,
         font=dict(color=TEXT_MAIN),
@@ -840,9 +848,9 @@ with tabs[5]:
     fig6.update_yaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR)
     fig6.update_yaxes(title_text="Z-Score", row=1, col=1)
     fig6.update_yaxes(title_text="|S1−S2|", row=2, col=1)
-
+ 
     st.plotly_chart(fig6, use_container_width=True)
-
+ 
     # Quick stats comparison
     st.markdown('<div class="section-header">Statistik Perbandingan</div>', unsafe_allow_html=True)
     cmp_a, cmp_b = st.columns(2)
@@ -864,16 +872,17 @@ with tabs[5]:
             <tr><td>Cluster</td><td style="color:{TEXT_MAIN}; text-align:right">{cluster_map[tk]}</td></tr>
           </table>
         </div>""", unsafe_allow_html=True)
-
+ 
+ 
 # ══════════════════════════════════════════════════════════════════════════════
 #  TAB 7 — DATA & EXPORT
 # ══════════════════════════════════════════════════════════════════════════════
 with tabs[6]:
     st.markdown('<div class="section-header">⑦ Data Mentah & Export Hasil</div>',
                 unsafe_allow_html=True)
-
+ 
     export_tab1, export_tab2, export_tab3 = st.tabs(["📋 Tabel Ranking", "🗂️ Matriks Jarak", "📈 Data Harga"])
-
+ 
     with export_tab1:
         st.markdown("**Ranking Lengkap Leader–Lagger**")
         df_export_rank = leader_df.copy()
@@ -883,7 +892,7 @@ with tabs[6]:
         csv1 = df_export_rank.to_csv(index=False).encode()
         st.download_button("⬇️ Download CSV Ranking", csv1,
                            "dtw_leader_lagger_ranking.csv", "text/csv")
-
+ 
     with export_tab2:
         st.markdown("**Matriks Jarak DTW (N × N)**")
         df_dm = pd.DataFrame(dist_mat.round(2),
@@ -893,7 +902,7 @@ with tabs[6]:
         csv2 = df_dm.to_csv().encode()
         st.download_button("⬇️ Download Matriks DTW", csv2,
                            "dtw_distance_matrix.csv", "text/csv")
-
+ 
     with export_tab3:
         st.markdown("**Harga Asli (Rp)**")
         st.dataframe(df_raw.rename(columns=lambda x: x.replace(".JK","")),
@@ -901,7 +910,7 @@ with tabs[6]:
         csv3 = df_raw.to_csv().encode()
         st.download_button("⬇️ Download Harga CSV", csv3,
                            "harga_saham_raw.csv", "text/csv")
-
+ 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-header">Tentang Dashboard</div>', unsafe_allow_html=True)
     st.markdown(f"""
