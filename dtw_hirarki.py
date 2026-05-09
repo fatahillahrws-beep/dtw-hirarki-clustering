@@ -186,6 +186,14 @@ st.markdown(f"""
 # ─────────────────────────────────────────────────────────────────────────────
 #  CORE FUNCTIONS
 # ─────────────────────────────────────────────────────────────────────────────
+# HELPER UNTUK KONVERSI HEX KE RGBA
+def hex_to_rgba(hex_code: str, alpha: float) -> str:
+    hex_code = hex_code.lstrip('#')
+    r = int(hex_code[0:2], 16)
+    g = int(hex_code[2:4], 16)
+    b = int(hex_code[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
 @st.cache_data(show_spinner=False)
 def load_data(file_content: bytes) -> pd.DataFrame:
     import io
@@ -424,7 +432,7 @@ tabs = st.tabs([
 with tabs[0]:
     st.markdown('<div class="section-header">① Harga Penutupan Ternormalisasi (Z-Score)</div>',
                 unsafe_allow_html=True)
- 
+
     col_ctrl1, col_ctrl2 = st.columns([3, 1])
     selected_tickers = col_ctrl1.multiselect(
         "Pilih saham (kosong = semua)",
@@ -436,12 +444,12 @@ with tabs[0]:
         "Filter cluster",
         ["Semua"] + [f"Cluster {k}" for k in range(1, n_clusters + 1)],
     )
- 
+
     display_tickers = selected_tickers if selected_tickers else tickers
     if show_cluster_only != "Semua":
         ck = int(show_cluster_only.split()[-1])
         display_tickers = [t for t in display_tickers if cluster_map[t] == ck]
- 
+
     fig1 = go.Figure()
     for t in display_tickers:
         c_idx = (cluster_map[t] - 1) % len(CLUSTER_COLORS)
@@ -453,12 +461,18 @@ with tabs[0]:
             hovertemplate=f"<b>{t}</b><br>%{{x|%d %b %Y}}<br>Z-Score: %{{y:.2f}}<extra></extra>",
         ))
     fig1.add_hline(y=0, line_dash="dash", line_color=TEXT_MUTE, opacity=0.4)
-    fig1.update_layout(**PLOTLY_LAYOUT, height=420,
-                       title="Harga Saham Healthcare BEI — Normalized Z-Score",
-                       xaxis_title="Tanggal", yaxis_title="Z-Score",
-                       hovermode="x unified")
+    fig1.update_layout(
+        **PLOTLY_LAYOUT,
+        height=420,
+        title="Harga Saham Healthcare BEI — Normalized Z-Score",
+        xaxis_title="Tanggal",
+        yaxis_title="Z-Score",
+        hovermode="x unified"
+    )
+    fig1.update_xaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR)
+    fig1.update_yaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR)
     st.plotly_chart(fig1, use_container_width=True)
- 
+
     # Mini table: first/last price & change
     st.markdown('<div class="section-header">Ringkasan Harga Per Saham</div>',
                 unsafe_allow_html=True)
@@ -532,6 +546,21 @@ with tabs[1]:
  
     fig2.update_layout(**PLOTLY_LAYOUT, height=580,
                        title="DTW Distance Matrix — dikelompokkan per Cluster")
+    
+    fig2.update_layout(
+        xaxis=dict(
+            tickangle=-45, 
+            tickfont=dict(size=9),
+            gridcolor="rgba(0,0,0,0)",
+            zerolinecolor="rgba(0,0,0,0)"
+        ),
+        yaxis=dict(
+            tickfont=dict(size=9), 
+            autorange="reversed",
+            gridcolor="rgba(0,0,0,0)",
+            zerolinecolor="rgba(0,0,0,0)"
+        ),
+    )
     st.plotly_chart(fig2, use_container_width=True)
  
     # Top-N similar pairs table
@@ -639,13 +668,25 @@ with tabs[3]:
     ))
     fig4.add_vline(x=leader_df["Skor"].mean(), line_dash="dash", line_color=ACCENT_GOLD,
                    annotation_text="Rata-rata", annotation_font=dict(color=ACCENT_GOLD))
+    
     fig4.update_layout(**PLOTLY_LAYOUT, height=620,
                        title="Leader Score — Semakin Tinggi = Semakin Representatif (Leader)",
                        xaxis_title="Leader Score (1 / rata-rata jarak DTW)",
                        bargap=0.25)
+    
     fig4.update_layout(
-        yaxis=dict(autorange="reversed", tickfont=dict(size=11), gridcolor="transparent",
-                   zerolinecolor="transparent"),
+        xaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+        yaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
     )
  
     # Annotations for top & bottom
@@ -695,6 +736,10 @@ with tabs[3]:
     fig4b.update_traces(textposition="top center", textfont=dict(size=9))
     fig4b.add_hline(y=0, line_dash="dash", line_color=TEXT_MUTE, opacity=0.4)
     fig4b.update_layout(**PLOTLY_LAYOUT, height=400)
+    fig4b.update_layout(
+        xaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+        yaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+    )
     st.plotly_chart(fig4b, use_container_width=True)
  
  
@@ -712,26 +757,44 @@ with tabs[4]:
         mean_s  = df_norm[members].mean(axis=1)
         std_s   = df_norm[members].std(axis=1)
         color   = CLUSTER_COLORS[(k-1) % len(CLUSTER_COLORS)]
+        
         fig5.add_trace(go.Scatter(
             x=df_norm.index, y=mean_s,
             name=f"Cluster {k} ({len(members)} saham)",
             line=dict(color=color, width=2.5),
             hovertemplate=f"<b>Cluster {k}</b><br>%{{x|%d %b %Y}}<br>Z-Score: %{{y:.2f}}<extra></extra>",
         ))
+        
+        # PERBAIKAN: Menggunakan hex_to_rgba untuk memastikan format string warna valid untuk plotly fillcolor
         fig5.add_trace(go.Scatter(
             x=pd.concat([df_norm.index.to_series(), df_norm.index.to_series()[::-1]]),
             y=pd.concat([mean_s + std_s, (mean_s - std_s)[::-1]]),
             fill="toself",
-            fillcolor=f"{color}20",
+            fillcolor=hex_to_rgba(color, 0.15),
             line=dict(color="rgba(0,0,0,0)"),
             showlegend=False,
             hoverinfo="skip",
         ))
+        
     fig5.add_hline(y=0, line_dash="dot", line_color=TEXT_MUTE, opacity=0.3)
     fig5.update_layout(**PLOTLY_LAYOUT, height=420,
                        title="Rata-rata Harga Per Cluster ± 1 Std Dev",
                        xaxis_title="Tanggal", yaxis_title="Z-Score",
                        hovermode="x unified")
+    fig5.update_layout(
+        xaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+        yaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+    )
     st.plotly_chart(fig5, use_container_width=True)
  
     # Individual cluster deep-dive
@@ -754,6 +817,20 @@ with tabs[4]:
                         title=f"Cluster {sel_cluster} — Individual Saham",
                         xaxis_title="Tanggal", yaxis_title="Z-Score",
                         hovermode="x unified")
+    fig5b.update_layout(
+        xaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+        yaxis=dict(
+            gridcolor=BORDER_CLR, 
+            zerolinecolor=BORDER_CLR,
+            showgrid=True,
+            showline=False
+        ),
+    )
     st.plotly_chart(fig5b, use_container_width=True)
  
  
@@ -823,13 +900,14 @@ with tabs[5]:
             ), row=1, col=1)
  
     # Bottom: warping path heatmap (cost difference)
+    # PERBAIKAN: Menggunakan hex_to_rgba untuk fillcolor
     diff = np.abs(s1s[:ns] - s2s[:ns])
     fig6.add_trace(go.Scatter(
         x=dates_s[:ns], y=diff,
         fill="tozeroy",
         name="│S1−S2│",
         line=dict(color=ACCENT_GOLD, width=1.2),
-        fillcolor=f"{ACCENT_GOLD}25",
+        fillcolor=hex_to_rgba(ACCENT_GOLD, 0.15),
         hovertemplate="%{x|%d %b %Y}<br>Selisih: %{y:.3f}<extra></extra>",
     ), row=2, col=1)
  
@@ -841,6 +919,10 @@ with tabs[5]:
         legend=dict(bgcolor=CARD_BG, bordercolor=BORDER_CLR, borderwidth=1),
         margin=dict(l=40, r=20, t=50, b=40),
     )
+    fig6.update_xaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR, showgrid=True)
+    fig6.update_yaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR, showgrid=True)
+    fig6.update_yaxes(title_text="Z-Score", row=1, col=1)
+    fig6.update_yaxes(title_text="|S1-S2|", row=2, col=1)
  
     st.plotly_chart(fig6, use_container_width=True)
  
@@ -863,7 +945,7 @@ with tabs[5]:
               <td style="color:{ACCENT_GREEN if (ser.iloc[-1]/ser.iloc[0]-1)>0 else ACCENT_RED}; text-align:right">
                 {(ser.iloc[-1]/ser.iloc[0]-1)*100:+.2f}%</td></tr>
             <tr><td>Cluster</td><td style="color:{TEXT_MAIN}; text-align:right">{cluster_map[tk]}</td></tr>
-           </table>
+          </table>
         </div>""", unsafe_allow_html=True)
  
  
