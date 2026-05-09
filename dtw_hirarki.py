@@ -424,7 +424,7 @@ tabs = st.tabs([
 with tabs[0]:
     st.markdown('<div class="section-header">① Harga Penutupan Ternormalisasi (Z-Score)</div>',
                 unsafe_allow_html=True)
- 
+
     col_ctrl1, col_ctrl2 = st.columns([3, 1])
     selected_tickers = col_ctrl1.multiselect(
         "Pilih saham (kosong = semua)",
@@ -436,12 +436,12 @@ with tabs[0]:
         "Filter cluster",
         ["Semua"] + [f"Cluster {k}" for k in range(1, n_clusters + 1)],
     )
- 
+
     display_tickers = selected_tickers if selected_tickers else tickers
     if show_cluster_only != "Semua":
         ck = int(show_cluster_only.split()[-1])
         display_tickers = [t for t in display_tickers if cluster_map[t] == ck]
- 
+
     fig1 = go.Figure()
     for t in display_tickers:
         c_idx = (cluster_map[t] - 1) % len(CLUSTER_COLORS)
@@ -453,26 +453,18 @@ with tabs[0]:
             hovertemplate=f"<b>{t}</b><br>%{{x|%d %b %Y}}<br>Z-Score: %{{y:.2f}}<extra></extra>",
         ))
     fig1.add_hline(y=0, line_dash="dash", line_color=TEXT_MUTE, opacity=0.4)
-    fig1.update_layout(**PLOTLY_LAYOUT, height=420,
-                       title="Harga Saham Healthcare BEI — Normalized Z-Score",
-                       xaxis_title="Tanggal", yaxis_title="Z-Score",
-                       hovermode="x unified")
-   fig1.update_layout(
-    xaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-    yaxis=dict(
-        gridcolor=BORDER_CLR, 
-        zerolinecolor=BORDER_CLR,
-        showgrid=True,
-        showline=False
-    ),
-)
+    fig1.update_layout(
+        **PLOTLY_LAYOUT,
+        height=420,
+        title="Harga Saham Healthcare BEI — Normalized Z-Score",
+        xaxis_title="Tanggal",
+        yaxis_title="Z-Score",
+        hovermode="x unified"
+    )
+    fig1.update_xaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR)
+    fig1.update_yaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR)
     st.plotly_chart(fig1, use_container_width=True)
- 
+
     # Mini table: first/last price & change
     st.markdown('<div class="section-header">Ringkasan Harga Per Saham</div>',
                 unsafe_allow_html=True)
