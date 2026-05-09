@@ -242,7 +242,6 @@ def dtw_path(s1: np.ndarray, s2: np.ndarray):
         else: i -= 1; j -= 1
     return dtw_mat[1:, 1:], list(reversed(path))
  
-# PERBAIKAN: Hilangkan underscore '_' pada parameter agar cache di-reset saat data filter berubah
 @st.cache_data(show_spinner=False)
 def compute_dtw_matrix(df_norm: pd.DataFrame, window: int = 30) -> np.ndarray:
     tickers = df_norm.columns.tolist()
@@ -255,7 +254,6 @@ def compute_dtw_matrix(df_norm: pd.DataFrame, window: int = 30) -> np.ndarray:
             dist_mat[i, j] = dist_mat[j, i] = d
     return dist_mat
  
-# PERBAIKAN: Hilangkan underscore '_' pada parameter
 @st.cache_data(show_spinner=False)
 def run_clustering(dist_mat: np.ndarray, k: int):
     condensed = squareform(dist_mat)
@@ -361,7 +359,6 @@ n       = len(tickers)
 # ─────────────────────────────────────────────────────────────────────────────
 prog_bar = st.progress(0, text="🔄 Menghitung matriks DTW…")
  
-# PERBAIKAN: Hilangkan underscore '_' pada parameter agar cache di-reset dengan benar
 @st.cache_data(show_spinner=False)
 def full_compute(df_norm, window, k):
     dist_mat        = compute_dtw_matrix(df_norm, window)
@@ -534,14 +531,18 @@ with tabs[1]:
         cnt = sum(1 for t in order if cluster_map[t] == k)
         x0  = prev - 0.5
         x1  = prev + cnt - 0.5
+        
+        # PERBAIKAN: Penambahan modulo agar tidak IndexError jika k > 6
+        color_idx = (k-1) % len(CLUSTER_COLORS)
+        
         fig2.add_shape(type="rect",
                        x0=x0, y0=x0, x1=x1, y1=x1,
-                       line=dict(color=CLUSTER_COLORS[k-1], width=2),
+                       line=dict(color=CLUSTER_COLORS[color_idx], width=2),
                        fillcolor="rgba(0,0,0,0)")
         fig2.add_annotation(
             x=(x0 + x1) / 2, y=-1.2,
             text=f"C{k}", showarrow=False,
-            font=dict(color=CLUSTER_COLORS[k-1], size=10),
+            font=dict(color=CLUSTER_COLORS[color_idx], size=10),
         )
         prev += cnt
  
@@ -598,7 +599,10 @@ with tabs[2]:
     threshold_val = Z_link[-(n_clusters - 1), 2] if n_clusters > 1 else Z_link[-1, 2]
  
     from scipy.cluster.hierarchy import set_link_color_palette
-    set_link_color_palette(CLUSTER_COLORS[:n_clusters])
+    
+    # PERBAIKAN: Jika cluster lebih dari warna tersedia, pastikan aman dengan pengulangan
+    safe_palette = [CLUSTER_COLORS[i % len(CLUSTER_COLORS)] for i in range(n_clusters)]
+    set_link_color_palette(safe_palette)
  
     dend = dendrogram(
         Z_link,
@@ -766,7 +770,6 @@ with tabs[4]:
             hovertemplate=f"<b>Cluster {k}</b><br>%{{x|%d %b %Y}}<br>Z-Score: %{{y:.2f}}<extra></extra>",
         ))
         
-        # PERBAIKAN: Menggunakan hex_to_rgba untuk memastikan format string warna valid untuk plotly fillcolor
         fig5.add_trace(go.Scatter(
             x=pd.concat([df_norm.index.to_series(), df_norm.index.to_series()[::-1]]),
             y=pd.concat([mean_s + std_s, (mean_s - std_s)[::-1]]),
@@ -901,7 +904,6 @@ with tabs[5]:
             ), row=1, col=1)
  
     # Bottom: warping path heatmap (cost difference)
-    # PERBAIKAN: Menggunakan hex_to_rgba untuk fillcolor
     diff = np.abs(s1s[:ns] - s2s[:ns])
     fig6.add_trace(go.Scatter(
         x=dates_s[:ns], y=diff,
