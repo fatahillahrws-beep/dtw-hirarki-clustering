@@ -242,16 +242,20 @@ def dtw_path(s1: np.ndarray, s2: np.ndarray):
         else: i -= 1; j -= 1
     return dtw_mat[1:, 1:], list(reversed(path))
  
- 
+# PERBAIKAN: Hilangkan underscore '_' pada parameter agar cache di-reset saat data filter berubah
 @st.cache_data(show_spinner=False)
-@st.cache_data(show_spinner=False)
-def run_clustering(dist_mat: np.ndarray, k: int):
-    condensed = squareform(dist_mat)
-    Z = linkage(condensed, method="ward")
-    labels = fcluster(Z, k, criterion="maxclust")
-    return Z, labels.tolist()
+def compute_dtw_matrix(df_norm: pd.DataFrame, window: int = 30) -> np.ndarray:
+    tickers = df_norm.columns.tolist()
+    n = len(tickers)
+    data = df_norm.values.T
+    dist_mat = np.zeros((n, n))
+    for i in range(n):
+        for j in range(i + 1, n):
+            d = dtw_distance(data[i], data[j], window)
+            dist_mat[i, j] = dist_mat[j, i] = d
+    return dist_mat
  
- 
+# PERBAIKAN: Hilangkan underscore '_' pada parameter
 @st.cache_data(show_spinner=False)
 def run_clustering(dist_mat: np.ndarray, k: int):
     condensed = squareform(dist_mat)
@@ -357,6 +361,7 @@ n       = len(tickers)
 # ─────────────────────────────────────────────────────────────────────────────
 prog_bar = st.progress(0, text="🔄 Menghitung matriks DTW…")
  
+# PERBAIKAN: Hilangkan underscore '_' pada parameter agar cache di-reset dengan benar
 @st.cache_data(show_spinner=False)
 def full_compute(df_norm, window, k):
     dist_mat        = compute_dtw_matrix(df_norm, window)
