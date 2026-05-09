@@ -53,8 +53,7 @@ PLOTLY_LAYOUT = dict(
     paper_bgcolor=CARD_BG,
     plot_bgcolor=CARD_BG,
     font=dict(color=TEXT_MAIN, family="Inter, sans-serif"),
-    xaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
-    yaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+ 
     legend=dict(bgcolor=CARD_BG, bordercolor=BORDER_CLR, borderwidth=1),
     margin=dict(l=40, r=20, t=50, b=40),
 )
@@ -458,6 +457,10 @@ with tabs[0]:
                        title="Harga Saham Healthcare BEI — Normalized Z-Score",
                        xaxis_title="Tanggal", yaxis_title="Z-Score",
                        hovermode="x unified")
+    fig1.update_layout(
+        xaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+        yaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+    )
     st.plotly_chart(fig1, use_container_width=True)
  
     # Mini table: first/last price & change
@@ -533,8 +536,12 @@ with tabs[1]:
  
     fig2.update_layout(**PLOTLY_LAYOUT, height=580,
                        title="DTW Distance Matrix — dikelompokkan per Cluster")
-    fig2.update_xaxes(tickangle=-45, tickfont=dict(size=9), gridcolor="transparent")
-    fig2.update_yaxes(tickfont=dict(size=9), autorange="reversed", gridcolor="transparent")
+    fig2.update_layout(
+        xaxis=dict(tickangle=-45, tickfont=dict(size=9), gridcolor="transparent",
+                   zerolinecolor="transparent"),
+        yaxis=dict(tickfont=dict(size=9), autorange="reversed", gridcolor="transparent",
+                   zerolinecolor="transparent"),
+    )
     st.plotly_chart(fig2, use_container_width=True)
  
     # Top-N similar pairs table
@@ -646,7 +653,10 @@ with tabs[3]:
                        title="Leader Score — Semakin Tinggi = Semakin Representatif (Leader)",
                        xaxis_title="Leader Score (1 / rata-rata jarak DTW)",
                        bargap=0.25)
-    fig4.update_yaxes(autorange="reversed", tickfont=dict(size=11), gridcolor="transparent")
+    fig4.update_layout(
+        yaxis=dict(autorange="reversed", tickfont=dict(size=11), gridcolor="transparent",
+                   zerolinecolor="transparent"),
+    )
  
     # Annotations for top & bottom
     fig4.add_annotation(
@@ -695,6 +705,10 @@ with tabs[3]:
     fig4b.update_traces(textposition="top center", textfont=dict(size=9))
     fig4b.add_hline(y=0, line_dash="dash", line_color=TEXT_MUTE, opacity=0.4)
     fig4b.update_layout(**PLOTLY_LAYOUT, height=400)
+    fig4b.update_layout(
+        xaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+        yaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+    )
     st.plotly_chart(fig4b, use_container_width=True)
  
  
@@ -732,6 +746,10 @@ with tabs[4]:
                        title="Rata-rata Harga Per Cluster ± 1 Std Dev",
                        xaxis_title="Tanggal", yaxis_title="Z-Score",
                        hovermode="x unified")
+    fig5.update_layout(
+        xaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+        yaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+    )
     st.plotly_chart(fig5, use_container_width=True)
  
     # Individual cluster deep-dive
@@ -754,6 +772,10 @@ with tabs[4]:
                         title=f"Cluster {sel_cluster} — Individual Saham",
                         xaxis_title="Tanggal", yaxis_title="Z-Score",
                         hovermode="x unified")
+    fig5b.update_layout(
+        xaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+        yaxis=dict(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR),
+    )
     st.plotly_chart(fig5b, use_container_width=True)
  
  
@@ -844,7 +866,7 @@ with tabs[5]:
     fig6.update_xaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR)
     fig6.update_yaxes(gridcolor=BORDER_CLR, zerolinecolor=BORDER_CLR)
     fig6.update_yaxes(title_text="Z-Score", row=1, col=1)
-    fig6.update_yaxes(title_text="|S1−S2|", row=2, col=1)
+    fig6.update_yaxes(title_text="|S1-S2|", row=2, col=1)
  
     st.plotly_chart(fig6, use_container_width=True)
  
